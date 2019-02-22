@@ -1,29 +1,32 @@
-version: '2.0'
-services:
-  app:
-    # image: divante/vue-storefront:latest
-    build:
-      context: .
-      dockerfile: docker/vue-storefront/Dockerfile
-    env_file: docker/vue-storefront/default.env
-    environment:
-      VS_ENV: dev
-    network_mode: host
-    volumes:
-      - '.babelrc:/var/www/.babelrc'
-      - './config:/var/www/config'
-      - './core:/var/www/core'
-      - './ecosystem.json:/var/www/ecosystem.json'
-      - './.eslintignore:/var/www/.eslintignore'
-      - './.eslintrc.js:/var/www/.eslintrc.js'
-      - './lerna.json:/var/www/lerna.json'
-      - './tsconfig.json:/var/www/tsconfig.json'
-      - './tsconfig-build.json:/var/www/tsconfig-build.json'
-      - './shims.d.ts:/var/www/shims.d.ts'
-      - './package.json:/var/www/package.json'
-      - './src:/var/www/src'
-      - './var:/var/www/var'
-    tmpfs:
-      - /var/www/dist
-    ports:
-      - '3000:3000'
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+  build:
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run: yarn install
+      - run: yarn run installer:ci
+      - run: yarn run build
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      -
+
+      # run tests!
+      - run: yarn test
+      - run: yarn start
